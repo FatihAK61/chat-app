@@ -200,13 +200,13 @@ export default function ChatRoomScreen() {
                             );
                         }}
                         keyExtractor={(item) => item?.$id ?? "unknown"}
+                        maintainVisibleContentPosition={true}
                         contentContainerStyle={{padding: 10}}
                         recycleItems={true}
                         initialScrollIndex={messages.length - 1}
-                        alignItemsAtEnd
+                        alignItemsAtEnd={true}
                         maintainScrollAtEnd
                         maintainScrollAtEndThreshold={0.5}
-                        maintainVisibleContentPosition
                         estimatedItemSize={100}
                     />
                     <View style={{
