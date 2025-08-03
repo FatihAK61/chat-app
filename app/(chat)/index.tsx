@@ -1,18 +1,79 @@
+import {useEffect, useState} from "react";
 import {FlatList, RefreshControl, View} from "react-native";
 import {Text} from "@/components/Text";
 import {Link} from "expo-router";
 import {IconSymbol} from "@/components/IconSymbol";
-import {appwriteConfig, database} from "@/utils/appwrite";
-import {useEffect, useState} from "react";
+import {appwriteConfig, client, database} from "@/utils/appwrite";
 import {ChatRoom} from "@/utils/types";
 import {Query} from "react-native-appwrite";
+
+interface AppwriteChatRoomDocument {
+    $id: string;
+    title: string;
+    description: string;
+    isPrivate: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
 
 export default function Index() {
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
-        fetchChatRooms();
+        fetchChatRooms().catch(error => {
+            console.error('Error fetching chat rooms:', error);
+        });
+
+        const unsubscribe = client.subscribe(
+            `databases.${appwriteConfig.db}.collections.${appwriteConfig.col.chatRooms}.documents`,
+            (response) => {
+                console.log('Realtime event:', response);
+
+                const payload = response.payload as AppwriteChatRoomDocument;
+
+                if (response.events.includes('databases.*.collections.*.documents.*.create')) {
+                    const newRoom: ChatRoom = {
+                        id: payload.$id,
+                        title: payload.title,
+                        description: payload.description,
+                        isPrivate: payload.isPrivate,
+                        createdAt: new Date(payload.createdAt),
+                        updatedAt: new Date(payload.updatedAt),
+                    };
+
+                    setChatRooms(prevRooms => [newRoom, ...prevRooms]);
+                }
+
+                if (response.events.includes('databases.*.collections.*.documents.*.update')) {
+                    const updatedRoom: ChatRoom = {
+                        id: payload.$id,
+                        title: payload.title,
+                        description: payload.description,
+                        isPrivate: payload.isPrivate,
+                        createdAt: new Date(payload.createdAt),
+                        updatedAt: new Date(payload.updatedAt),
+                    };
+
+                    setChatRooms(prevRooms =>
+                        prevRooms.map(room =>
+                            room.id === updatedRoom.id ? updatedRoom : room
+                        )
+                    );
+                }
+
+                if (response.events.includes('databases.*.collections.*.documents.*.delete')) {
+                    const deletedRoomId = payload.$id;
+                    setChatRooms(prevRooms =>
+                        prevRooms.filter(room => room.id !== deletedRoomId)
+                    );
+                }
+            }
+        );
+
+        return () => {
+            unsubscribe();
+        };
     }, []);
 
     const handleRefresh = async () => {
@@ -28,15 +89,11 @@ export default function Index() {
 
     const fetchChatRooms = async () => {
         try {
-            const {documents, total} = await database.listDocuments(
+            const {documents} = await database.listDocuments(
                 appwriteConfig.db,
                 appwriteConfig.col.chatRooms,
-                [Query.limit(100)]
+                [Query.limit(100), Query.orderDesc('$createdAt')]
             );
-
-            console.log("total", total);
-
-            console.log("docs", JSON.stringify(documents, null, 2));
 
             const rooms = documents.map((doc) => ({
                 id: doc.$id,

@@ -8,9 +8,8 @@ export default function ChatSettings() {
     const {chat: chatRoomId} = useLocalSearchParams();
     const router = useRouter();
 
-    if (!chatRoomId) {
+    if (!chatRoomId)
         return <Text>We could not find this chat room 🥲</Text>;
-    }
 
     async function handleDeleteChat() {
         try {

@@ -5,14 +5,13 @@ if (!process.env.EXPO_PUBLIC_APPWRITE_APP_ID) {
 }
 
 const appwriteConfig = {
-    endpoint: "https://cloud.appwrite.io/v1",
-    projectId: process.env.EXPO_PUBLIC_APPWRITE_APP_ID,
-    platform: "com.betoatexpo.modern-chat-app",
-    db: "67d59a3300219b4fc01a",
+    endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!,
+    projectId: process.env.EXPO_PUBLIC_APPWRITE_APP_ID!,
+    platform: "com.anonymous.chatapp",
+    db: "688f2e880014f92bf4be",
     col: {
-        chatRooms: "67d59bbe000376c4cbe8",
-        message: "67d59beb0003e12f398b",
-        user: "67d59bd40026f76926fd",
+        chatRooms: "688f2ec400339aec1e0a",
+        message: "688f2ea5003abe4df5ed"
     },
 };
 

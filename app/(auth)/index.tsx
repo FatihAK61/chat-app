@@ -3,7 +3,7 @@ import {Image, SafeAreaView, View} from "react-native";
 
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
-import {isClerkAPIResponseError, useSignIn, useSSO, useUser,} from "@clerk/clerk-expo";
+import {isClerkAPIResponseError, useSignIn, useSSO} from "@clerk/clerk-expo";
 import {ClerkAPIError} from "@clerk/types";
 import {Text} from "@/components/Text";
 import {Button} from "@/components/Button";
@@ -12,21 +12,19 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function Index() {
     const {startSSOFlow} = useSSO();
-    const {user, isSignedIn} = useUser();
     const {signIn, setActive} = useSignIn();
     const [errors, setErrors] = React.useState<ClerkAPIError[]>([]);
 
     const handleSignInWithGoogle = React.useCallback(async () => {
         try {
-            const {createdSessionId, setActive, signIn, signUp} =
+            const {createdSessionId, setActive} =
                 await startSSOFlow({
                     strategy: "oauth_google",
                     redirectUrl: AuthSession.makeRedirectUri(),
                 });
 
             if (createdSessionId)
-                setActive!({session: createdSessionId});
-
+                await setActive!({session: createdSessionId});
         } catch (err) {
             if (isClerkAPIResponseError(err)) setErrors(err.errors);
             console.error(JSON.stringify(err, null, 2));
@@ -76,39 +74,29 @@ export default function Index() {
                     ))}
                 </View>
 
-                {/* spacer */}
                 <View style={{flex: 1}}/>
-                <Button
-                    onPress={signInWithPasskey}
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 10,
-                        marginBottom: 20,
-                        backgroundColor: "black",
-                        borderColor: "white",
-                        borderWidth: 1,
-                    }}
-                >
+                <Button onPress={signInWithPasskey} style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 10,
+                    marginBottom: 20,
+                    backgroundColor: "black",
+                    borderColor: "white",
+                    borderWidth: 1,
+                }}>
                     <Text style={{color: "white", fontWeight: "500"}}>
                         Sign in with Passkey
                     </Text>
                 </Button>
-                <Button
-                    onPress={handleSignInWithGoogle}
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 10,
-                        marginBottom: 30,
-                    }}
-                >
-                    <Image
-                        source={require("@/assets/images/google-icon.png")}
-                        style={{width: 20, height: 20}}
-                    />
+                <Button onPress={handleSignInWithGoogle} style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 10,
+                    marginBottom: 30,
+                }}>
+                    <Image source={require("@/assets/images/google-icon.png")} style={{width: 20, height: 20}}/>
                     <Text style={{color: "black", fontWeight: "500"}}>
                         Sign in with Google
                     </Text>

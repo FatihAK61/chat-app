@@ -1,4 +1,4 @@
-import * as React from "react";
+import {useEffect, useRef, useState} from "react";
 import {Link, Stack, useLocalSearchParams} from "expo-router";
 import {ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, TextInput, View,} from "react-native";
 import {Text} from "@/components/Text";
@@ -16,34 +16,27 @@ export default function ChatRoomScreen() {
     const {chat: chatRoomId} = useLocalSearchParams();
     const {user} = useUser();
 
-    if (!chatRoomId) {
+    if (!chatRoomId)
         return <Text>We could not find this chat room 🥲</Text>;
-    }
 
-    const [messageContent, setMessageContent] = React.useState("");
-    const [chatRoom, setChatRoom] = React.useState<ChatRoom | null>(null);
-    const [messages, setMessages] = React.useState<Message[]>([]);
-    const [isLoading, setIsLoading] = React.useState(true);
+    const [messageContent, setMessageContent] = useState("");
+    const [chatRoom, setChatRoom] = useState<ChatRoom | null>(null);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const headerHeight = Platform.OS === "ios" ? useHeaderHeight() : 0;
-    const textInputRef = React.useRef<TextInput>(null);
+    const textInputRef = useRef<TextInput>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         handleFirstLoad();
     }, []);
-
-    // Focus the text input when the component mounts
-    React.useEffect(() => {
+    useEffect(() => {
         if (!isLoading) {
-            // Wait until loading is complete before focusing
             setTimeout(() => {
                 textInputRef.current?.focus();
             }, 100);
         }
     }, [isLoading]);
-
-    // Subscribe to messages
-    React.useEffect(() => {
-        // listen for updates on the chat room document
+    useEffect(() => {
         const channel = `databases.${appwriteConfig.db}.collections.${appwriteConfig.col.chatRooms}.documents.${chatRoomId}`;
 
         const unsubscribe = client.subscribe(channel, () => {
@@ -67,7 +60,6 @@ export default function ChatRoomScreen() {
         }
     }
 
-    // get chat room info by chat id
     async function getChatRoom() {
         const document = await database.getDocument(
             appwriteConfig.db,
@@ -75,14 +67,9 @@ export default function ChatRoomScreen() {
             chatRoomId as string
         );
 
-        /**
-         * First, we need to cast the document to unknown to avoid type errors
-         * Then, we need to cast the document to ChatRoom to get the correct type 🤷‍♂️
-         */
         setChatRoom(document as unknown as ChatRoom);
     }
 
-    // get messages associated with chat id
     async function getMessages() {
         try {
             const {documents, total} = await database.listDocuments(
@@ -95,7 +82,6 @@ export default function ChatRoomScreen() {
                 ]
             );
 
-            // Reverse the documents array to display in chronological order
             documents.reverse();
 
             setMessages(documents as unknown as Message[]);
@@ -116,7 +102,6 @@ export default function ChatRoomScreen() {
         };
 
         try {
-            // create a new message document
             await database.createDocument(
                 appwriteConfig.db,
                 appwriteConfig.col.message,
@@ -126,7 +111,6 @@ export default function ChatRoomScreen() {
             setMessageContent("");
 
             console.log("updating chat room", chatRoomId);
-            // Update chat room updatedAt field
             await database.updateDocument(
                 appwriteConfig.db,
                 appwriteConfig.col.chatRooms,
@@ -222,14 +206,11 @@ export default function ChatRoomScreen() {
                         contentContainerStyle={{padding: 10}}
                         recycleItems={true}
                         initialScrollIndex={messages.length - 1}
-                        alignItemsAtEnd // Aligns to the end of the screen, so if there's only a few items there will be enough padding at the top to make them appear to be at the bottom.
-                        maintainScrollAtEnd // prop will check if you are already scrolled to the bottom when data changes, and if so it keeps you scrolled to the bottom.
-                        maintainScrollAtEndThreshold={0.5} // prop will check if you are already scrolled to the bottom when data changes, and if so it keeps you scrolled to the bottom.
-                        maintainVisibleContentPosition //Automatically adjust item positions when items are added/removed/resized above the viewport so that there is no shift in the visible content.
-                        estimatedItemSize={100} // estimated height of the item
-                        // getEstimatedItemSize={(info) => { // use if items are different known sizes
-                        //   console.log("info", info);
-                        // }}
+                        alignItemsAtEnd
+                        maintainScrollAtEnd
+                        maintainScrollAtEndThreshold={0.5}
+                        maintainVisibleContentPosition
+                        estimatedItemSize={100}
                     />
                     <View
                         style={{
@@ -248,8 +229,8 @@ export default function ChatRoomScreen() {
                             style={{
                                 minHeight: 40,
                                 color: "white",
-                                flexShrink: 1, // prevent pushing the send button out of the screen
-                                flexGrow: 1, // allow the text input to grow keeping the send button to the right
+                                flexShrink: 1,
+                                flexGrow: 1,
                                 padding: 10,
                             }}
                             placeholderTextColor={"gray"}
