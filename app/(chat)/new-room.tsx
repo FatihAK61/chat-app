@@ -14,7 +14,7 @@ export default function NewRoom() {
     async function createRoom() {
         try {
             setIsLoading(true);
-            const room = await database.createDocument(
+            await database.createDocument(
                 appwriteConfig.db,
                 appwriteConfig.col.chatRooms,
                 ID.unique(),
@@ -33,16 +33,15 @@ export default function NewRoom() {
 
     return (
         <>
-            <Stack.Screen
-                options={{
-                    headerRight: () => (
-                        <Button
-                            title={isLoading ? "Creating..." : "Create"}
-                            onPress={createRoom}
-                            disabled={roomName.length === 0 || isLoading}
-                        />
-                    ),
-                }}
+            <Stack.Screen options={{
+                headerRight: () => (
+                    <Button
+                        title={isLoading ? "Creating..." : "Create"}
+                        onPress={createRoom}
+                        disabled={roomName.length === 0 || isLoading}
+                    />
+                ),
+            }}
             />
             <View style={{padding: 16, gap: 16}}>
                 <Input

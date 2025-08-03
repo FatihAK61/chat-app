@@ -25,11 +25,7 @@ export default function Index() {
             console.error('Error fetching chat rooms:', error);
         });
 
-        const unsubscribe = client.subscribe(
-            `databases.${appwriteConfig.db}.collections.${appwriteConfig.col.chatRooms}.documents`,
-            (response) => {
-                console.log('Realtime event:', response);
-
+        const unsubscribe = client.subscribe(`databases.${appwriteConfig.db}.collections.${appwriteConfig.col.chatRooms}.documents`, (response) => {
                 const payload = response.payload as AppwriteChatRoomDocument;
 
                 if (response.events.includes('databases.*.collections.*.documents.*.create')) {
@@ -119,23 +115,17 @@ export default function Index() {
             }
             renderItem={({item}) => {
                 return (
-                    <Link
-                        href={{
-                            pathname: "/[chat]",
-                            params: {chat: item.id},
+                    <Link href={{pathname: "/[chat]", params: {chat: item.id},}}>
+                        <View style={{
+                            gap: 6,
+                            padding: 16,
+                            width: "100%",
+                            borderRadius: 16,
+                            alignItems: "center",
+                            flexDirection: "row",
+                            backgroundColor: "#262626",
+                            justifyContent: "space-between",
                         }}
-                    >
-                        <View
-                            style={{
-                                gap: 6,
-                                padding: 16,
-                                width: "100%",
-                                borderRadius: 16,
-                                alignItems: "center",
-                                flexDirection: "row",
-                                backgroundColor: "#262626",
-                                justifyContent: "space-between",
-                            }}
                         >
                             <ItemTitleAndDescription
                                 title={item.title}

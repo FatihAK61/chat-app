@@ -36,7 +36,7 @@ export default function RootChatLayout() {
                                   </Link>
                               ),
                           }}/>
-            <Stack.Screen name="profile" options={{presentation: "modal"}}/>
+            <Stack.Screen name="profile" options={{presentation: "modal", headerTitle: "Profile"}}/>
             <Stack.Screen name="[chat]" options={{headerTitle: ""}}/>
             <Stack.Screen name="settings/[chat]" options={{presentation: "modal", headerTitle: "Room Settings"}}/>
         </Stack>

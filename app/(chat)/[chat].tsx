@@ -27,7 +27,9 @@ export default function ChatRoomScreen() {
     const textInputRef = useRef<TextInput>(null);
 
     useEffect(() => {
-        handleFirstLoad();
+        handleFirstLoad().catch(error => {
+            console.error('Error fetching chats:', error);
+        });
     }, []);
     useEffect(() => {
         if (!isLoading) {
@@ -40,8 +42,10 @@ export default function ChatRoomScreen() {
         const channel = `databases.${appwriteConfig.db}.collections.${appwriteConfig.col.chatRooms}.documents.${chatRoomId}`;
 
         const unsubscribe = client.subscribe(channel, () => {
-            console.log("chat room updated");
-            getMessages();
+            console.log("Chat room updated");
+            getMessages().catch(error => {
+                console.error('Error fetching messages:', error);
+            });
         });
 
         return () => {
@@ -72,7 +76,7 @@ export default function ChatRoomScreen() {
 
     async function getMessages() {
         try {
-            const {documents, total} = await database.listDocuments(
+            const {documents} = await database.listDocuments(
                 appwriteConfig.db,
                 appwriteConfig.col.message,
                 [
@@ -110,7 +114,7 @@ export default function ChatRoomScreen() {
             );
             setMessageContent("");
 
-            console.log("updating chat room", chatRoomId);
+            console.log("Updating chat room", chatRoomId);
             await database.updateDocument(
                 appwriteConfig.db,
                 appwriteConfig.col.chatRooms,
@@ -132,27 +136,20 @@ export default function ChatRoomScreen() {
 
     return (
         <>
-            <Stack.Screen
-                options={{
-                    headerTitle: chatRoom?.title,
-                    headerRight: () => (
-                        <Link
-                            href={{
-                                pathname: "/settings/[chat]",
-                                params: {chat: chatRoomId as string},
-                            }}
-                        >
-                            <IconSymbol name="gearshape" size={24} color={Primary}/>
-                        </Link>
-                    ),
-                }}
-            />
+            <Stack.Screen options={{
+                headerTitle: chatRoom?.title, headerRight: () => (
+                    <Link
+                        href={{
+                            pathname: "/settings/[chat]",
+                            params: {chat: chatRoomId as string},
+                        }}
+                    >
+                        <IconSymbol name="gearshape" size={24} color={Primary}/>
+                    </Link>
+                ),
+            }}/>
             <SafeAreaView style={{flex: 1}} edges={["bottom"]}>
-                <KeyboardAvoidingView
-                    style={{flex: 1}}
-                    behavior={"padding"}
-                    keyboardVerticalOffset={headerHeight}
-                >
+                <KeyboardAvoidingView style={{flex: 1}} behavior={"padding"} keyboardVerticalOffset={headerHeight}>
                     <LegendList
                         data={messages}
                         renderItem={({item}) => {
@@ -212,46 +209,36 @@ export default function ChatRoomScreen() {
                         maintainVisibleContentPosition
                         estimatedItemSize={100}
                     />
-                    <View
-                        style={{
-                            borderWidth: 1,
-                            borderColor: Secondary,
-                            flexDirection: "row",
-                            alignItems: "center",
-                            borderRadius: 20,
-                            marginBottom: 6,
-                            marginHorizontal: 10,
+                    <View style={{
+                        borderWidth: 1,
+                        borderColor: Secondary,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        borderRadius: 20,
+                        marginBottom: 6,
+                        marginHorizontal: 10,
+                    }}>
+                        <TextInput ref={textInputRef} placeholder="Type a message" style={{
+                            minHeight: 40,
+                            color: "white",
+                            flexShrink: 1,
+                            flexGrow: 1,
+                            padding: 10,
                         }}
-                    >
-                        <TextInput
-                            ref={textInputRef}
-                            placeholder="Type a message"
-                            style={{
-                                minHeight: 40,
-                                color: "white",
-                                flexShrink: 1,
-                                flexGrow: 1,
-                                padding: 10,
-                            }}
-                            placeholderTextColor={"gray"}
-                            multiline
-                            value={messageContent}
-                            onChangeText={setMessageContent}
+                                   placeholderTextColor={"gray"}
+                                   multiline
+                                   value={messageContent}
+                                   onChangeText={setMessageContent}
                         />
-                        <Pressable
-                            style={{
-                                width: 50,
-                                height: 50,
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                            onPress={handleSendMessage}
+                        <Pressable style={{
+                            width: 50,
+                            height: 50,
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                                   onPress={handleSendMessage}
                         >
-                            <IconSymbol
-                                name="paperplane"
-                                size={24}
-                                color={messageContent ? Primary : "gray"}
-                            />
+                            <IconSymbol name="paperplane" size={24} color={messageContent ? Primary : "gray"}/>
                         </Pressable>
                     </View>
                 </KeyboardAvoidingView>
