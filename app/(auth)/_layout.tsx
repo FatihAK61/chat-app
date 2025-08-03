@@ -1,17 +1,16 @@
-import {useUser} from "@clerk/clerk-expo";
-import {Redirect, Stack} from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
+import { Redirect, Stack } from "expo-router";
 
-export default function RootLayout() {
+export default function RootChatLayout() {
+  const { isSignedIn } = useUser();
 
-    const {isSignedIn} = useUser();
+  if (isSignedIn) {
+    return <Redirect href="/(chat)" />;
+  }
 
-    if (isSignedIn) {
-        return <Redirect href="/(chat)"/>
-    }
-
-    return (
-        <Stack>
-            <Stack.Screen name="index" options={{headerShown: false}}/>
-        </Stack>
-    );
+  return (
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+    </Stack>
+  );
 }
